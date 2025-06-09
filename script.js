@@ -22,20 +22,20 @@ baseFreqInput.addEventListener("input", () => {
 
 edoSelect.addEventListener("change", () => {
   edo = parseInt(edoSelect.value);
-  intervalRatio = 2;
+  intervalRatio = 2; // assume octave unless overridden
   customTuningInput.value = '';
   updateKeys();
 });
 
 customTuningInput.addEventListener("input", () => {
   const value = customTuningInput.value.trim();
-  const match = value.match(/^(\d+)\s*ed\s*(\d+\/\d+|\d+(\.\d+)?)/i);
+  const match = value.match(/^(\d+)\s*ed\s*(\d+(?:\.\d+)?|\d+\/\d+)$/i);
   if (match) {
-    const newEDO = parseInt(match[1]);
-    const newRatio = parseRatio(match[2]);
-    if (!isNaN(newEDO) && !isNaN(newRatio)) {
-      edo = newEDO;
-      intervalRatio = newRatio;
+    const x = parseInt(match[1]);
+    const y = parseRatio(match[2]);
+    if (!isNaN(x) && !isNaN(y) && y > 0) {
+      edo = x;
+      intervalRatio = y;
       edoSelect.value = ""; // Clear preset dropdown
       updateKeys();
     }
@@ -50,18 +50,17 @@ noteNamesInput.addEventListener("input", () => {
   }
 });
 
-function parseRatio(ratioStr) {
-  if (ratioStr.includes("/")) {
-    const [num, denom] = ratioStr.split("/").map(Number);
-    return denom ? num / denom : 1;
+function parseRatio(str) {
+  if (str.includes("/")) {
+    const [num, denom] = str.split("/").map(Number);
+    return denom ? num / denom : NaN;
   }
-  return parseFloat(ratioStr);
+  return parseFloat(str);
 }
 
 function keyToFrequency(keyNumber) {
   const stepsFromBase = keyNumber - baseKey;
-  const ratio = Math.pow(intervalRatio, stepsFromBase / edo);
-  return baseFreq * ratio;
+  return baseFreq * Math.pow(intervalRatio, stepsFromBase / edo);
 }
 
 function getNoteName(index) {
@@ -76,12 +75,7 @@ function updateKeys() {
     const freq = keyToFrequency(i + 1);
     const cents = 1200 * Math.log2(freq / baseFreq);
     const name = getNoteName(i + 1);
-
-    key.innerHTML = `
-      <div>${name}</div>
-      <div>${freq.toFixed(1)} Hz</div>
-      <div>${cents.toFixed(1)} ¢</div>
-    `;
+    key.innerHTML = `<div>${name}</div><div>${freq.toFixed(1)} Hz</div><div>${cents.toFixed(1)} ¢</div>`;
     key.dataset.freq = freq;
   }
 }
@@ -96,12 +90,7 @@ function createKeys() {
     const cents = 1200 * Math.log2(freq / baseFreq);
     const name = getNoteName(i);
 
-    btn.innerHTML = `
-      <div>${name}</div>
-      <div>${freq.toFixed(1)} Hz</div>
-      <div>${cents.toFixed(1)} ¢</div>
-    `;
-
+    btn.innerHTML = `<div>${name}</div><div>${freq.toFixed(1)} Hz</div><div>${cents.toFixed(1)} ¢</div>`;
     btn.dataset.freq = freq;
 
     btn.addEventListener("pointerdown", async () => {
@@ -124,7 +113,6 @@ function createKeys() {
   }
 }
 
-// Ensure Tone.js starts once on first tap
 document.body.addEventListener("pointerdown", async () => {
   await Tone.start();
 }, { once: true });
