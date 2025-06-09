@@ -1,4 +1,4 @@
-const baseKey = 288;
+  const baseKey = 288;
 let baseFreq = 440;
 let edo = 12;
 let intervalRatio = 2; // Default is octave
@@ -119,3 +119,8 @@ function createKeys() {
 }
 
 createKeys();
+
+document.body.addEventListener("click", async () => {
+  await Tone.start();
+  console.log("Audio unlocked");
+}, { once: true });
