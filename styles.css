@@ -1,0 +1,46 @@
+body {
+  margin: 0;
+  font-family: sans-serif;
+  display: flex;
+  flex-direction: column;
+  height: 100vh;
+  overflow: hidden;
+}
+
+#controls {
+  padding: 0.5em;
+  background: #f0f0f0;
+  display: flex;
+  flex-wrap: wrap;
+  gap: 1em;
+  font-size: 1rem;
+}
+
+#keygrid {
+  flex: 1;
+  overflow: auto;
+  display: grid;
+  grid-template-columns: repeat(24, minmax(60px, 1fr));
+  grid-template-rows: repeat(24, minmax(60px, 1fr));
+  gap: 2px;
+  padding: 4px;
+  background: #ddd;
+}
+
+.key {
+  background: white;
+  border: 1px solid #ccc;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  align-items: center;
+  text-align: center;
+  font-size: 0.7em;
+  user-select: none;
+  touch-action: manipulation;
+  transition: background 0.1s;
+}
+
+.key:active {
+  background: #aef;
+}
