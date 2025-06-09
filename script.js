@@ -28,12 +28,17 @@ edoSelect.addEventListener("change", () => {
 });
 
 customTuningInput.addEventListener("input", () => {
-  const match = customTuningInput.value.match(/^(\d+)ed(\d+\/\d+|\d+(\.\d+)?)/);
+  const value = customTuningInput.value.trim();
+  const match = value.match(/^(\d+)\s*ed\s*(\d+\/\d+|\d+(\.\d+)?)/i);
   if (match) {
-    edo = parseInt(match[1]);
-    intervalRatio = parseRatio(match[2]);
-    edoSelect.value = ""; // Clear dropdown selection
-    updateKeys();
+    const newEDO = parseInt(match[1]);
+    const newRatio = parseRatio(match[2]);
+    if (!isNaN(newEDO) && !isNaN(newRatio)) {
+      edo = newEDO;
+      intervalRatio = newRatio;
+      edoSelect.value = ""; // Clear preset dropdown
+      updateKeys();
+    }
   }
 });
 
