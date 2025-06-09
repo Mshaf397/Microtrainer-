@@ -93,28 +93,44 @@ function createKeys() {
     btn.innerHTML = `<div>${name}</div><div>${freq.toFixed(1)} Hz</div><div>${cents.toFixed(1)} ¢</div>`;
     btn.dataset.freq = freq;
 
-    btn.addEventListener("pointerdown", async () => {
-      await Tone.start();
-      synth.triggerAttack(freq);
-      btn.classList.add("active");
-    });
+    let isPlaying = false;
 
-    btn.addEventListener("pointerup", () => {
-      synth.triggerRelease(freq);
-      btn.classList.remove("active");
-    });
+    const startNote = async () => {
+      try {
+        await Tone.start();
+        synth.triggerAttack(freq);
+        btn.classList.add("active");
+        isPlaying = true;
+      } catch (err) {
+        console.error("Tone.js error:", err);
+      }
+    };
 
-    btn.addEventListener("pointerleave", () => {
-      synth.triggerRelease(freq);
-      btn.classList.remove("active");
-    });
+    const stopNote = () => {
+      if (isPlaying) {
+        synth.triggerRelease(freq);
+        btn.classList.remove("active");
+        isPlaying = false;
+      }
+    };
+
+    btn.addEventListener("pointerdown", startNote);
+    btn.addEventListener("pointerup", stopNote);
+    btn.addEventListener("pointerleave", stopNote);
+    btn.addEventListener("pointercancel", stopNote);
 
     grid.appendChild(btn);
   }
 }
 
+// Start Tone.js once on first user interaction
 document.body.addEventListener("pointerdown", async () => {
-  await Tone.start();
+  try {
+    await Tone.start();
+    console.log("Audio context started");
+  } catch (e) {
+    console.error("Failed to start audio context", e);
+  }
 }, { once: true });
 
 createKeys();
