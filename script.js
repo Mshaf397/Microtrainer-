@@ -1,6 +1,8 @@
 const baseKey = 288;
 let baseFreq = 440;
 let edo = 12;
+let intervalRatio = 2; // Default is octave
+let noteNames = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"];
 
 const synth = new Tone.PolySynth(Tone.Synth, {
   oscillator: { type: "sine" },
@@ -10,6 +12,8 @@ const synth = new Tone.PolySynth(Tone.Synth, {
 const grid = document.getElementById("keygrid");
 const baseFreqInput = document.getElementById("baseFreq");
 const edoSelect = document.getElementById("edo");
+const customTuningInput = document.getElementById("customTuning");
+const noteNamesInput = document.getElementById("noteNames");
 
 baseFreqInput.addEventListener("input", () => {
   baseFreq = parseFloat(baseFreqInput.value);
@@ -18,18 +22,47 @@ baseFreqInput.addEventListener("input", () => {
 
 edoSelect.addEventListener("change", () => {
   edo = parseInt(edoSelect.value);
+  intervalRatio = 2;
+  customTuningInput.value = '';
   updateKeys();
 });
 
+customTuningInput.addEventListener("input", () => {
+  const match = customTuningInput.value.match(/^(\d+)ed(\d+\/\d+|\d+(\.\d+)?)/);
+  if (match) {
+    edo = parseInt(match[1]);
+    intervalRatio = parseRatio(match[2]);
+    edoSelect.value = ""; // Clear dropdown selection
+    updateKeys();
+  }
+});
+
+noteNamesInput.addEventListener("input", () => {
+  const raw = noteNamesInput.value.split(",").map(x => x.trim()).filter(Boolean);
+  if (raw.length > 0) {
+    noteNames = raw;
+    updateKeys();
+  }
+});
+
+function parseRatio(ratioStr) {
+  if (ratioStr.includes("/")) {
+    const [num, denom] = ratioStr.split("/").map(Number);
+    return num / denom;
+  }
+  return parseFloat(ratioStr);
+}
+
 function keyToFrequency(keyNumber) {
   const stepsFromBase = keyNumber - baseKey;
-  const ratio = Math.pow(2, stepsFromBase / edo);
+  const ratio = Math.pow(intervalRatio, stepsFromBase / edo);
   return baseFreq * ratio;
 }
 
 function getNoteName(index) {
-  const names = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"];
-  return names[(index + 12) % 12];
+  const offset = index - baseKey;
+  const name = noteNames[((offset % noteNames.length) + noteNames.length) % noteNames.length];
+  return name;
 }
 
 function updateKeys() {
@@ -37,7 +70,8 @@ function updateKeys() {
     const key = document.getElementById("key" + (i + 1));
     const freq = keyToFrequency(i + 1);
     const cents = 1200 * Math.log2(freq / baseFreq);
-    const name = getNoteName(i + 1 - baseKey);
+    const name = getNoteName(i + 1);
+
     key.innerHTML = `
       <div>${name}</div>
       <div>${freq.toFixed(1)} Hz</div>
@@ -54,7 +88,7 @@ function createKeys() {
     btn.id = "key" + i;
     const freq = keyToFrequency(i);
     const cents = 1200 * Math.log2(freq / baseFreq);
-    const name = getNoteName(i - baseKey);
+    const name = getNoteName(i);
 
     btn.innerHTML = `
       <div>${name}</div>
