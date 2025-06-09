@@ -1,7 +1,7 @@
-  const baseKey = 288;
+const baseKey = 288;
 let baseFreq = 440;
 let edo = 12;
-let intervalRatio = 2; // Default is octave
+let intervalRatio = 2;
 let noteNames = ["C", "C♯", "D", "D♯", "E", "F", "F♯", "G", "G♯", "A", "A♯", "B"];
 
 const synth = new Tone.PolySynth(Tone.Synth, {
@@ -53,7 +53,7 @@ noteNamesInput.addEventListener("input", () => {
 function parseRatio(ratioStr) {
   if (ratioStr.includes("/")) {
     const [num, denom] = ratioStr.split("/").map(Number);
-    return num / denom;
+    return denom ? num / denom : 1;
   }
   return parseFloat(ratioStr);
 }
@@ -91,6 +91,7 @@ function createKeys() {
     const btn = document.createElement("div");
     btn.className = "key";
     btn.id = "key" + i;
+
     const freq = keyToFrequency(i);
     const cents = 1200 * Math.log2(freq / baseFreq);
     const name = getNoteName(i);
@@ -106,26 +107,26 @@ function createKeys() {
     btn.addEventListener("pointerdown", async () => {
       await Tone.start();
       synth.triggerAttack(freq);
-      btn.style.background = "#8ef";
+      btn.classList.add("active");
     });
 
     btn.addEventListener("pointerup", () => {
       synth.triggerRelease(freq);
-      btn.style.background = "";
+      btn.classList.remove("active");
     });
 
     btn.addEventListener("pointerleave", () => {
       synth.triggerRelease(freq);
-      btn.style.background = "";
+      btn.classList.remove("active");
     });
 
     grid.appendChild(btn);
   }
 }
 
-createKeys();
-
-document.body.addEventListener("click", async () => {
+// Ensure Tone.js starts once on first tap
+document.body.addEventListener("pointerdown", async () => {
   await Tone.start();
-  console.log("Audio unlocked");
 }, { once: true });
+
+createKeys();
